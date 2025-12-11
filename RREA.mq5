@@ -35,7 +35,7 @@ double          previousBarLow = 0.0;
 int panelX = 10;
 int panelY = 20;
 int panelWidth = 250;  // Increased width for better text display
-int panelHeight = 240; // Increased height to cover all labels
+int panelHeight = 280; // Increased height to cover market order button
 color panelBgColor = C'240,240,240';  // Light gray
 color textColor = clrBlack;
 
@@ -55,6 +55,7 @@ int OnInit()
    Print("RREA initialized");
    Print("Symbol: ", Symbol(), ", Point: ", _Point, ", Digits: ", _Digits);
    Print("Stop Loss Price: ", StopLossPrice);
+   Print("Stop Level: ", SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL), " points");
    
    return INIT_SUCCEEDED;
 }
@@ -70,11 +71,13 @@ void OnDeinit(const int reason)
    ObjectDelete(0, "btnSellLimit");
    ObjectDelete(0, "btnBuyStop");
    ObjectDelete(0, "btnSellStop");
+   ObjectDelete(0, "btnMarketOrder");
    ObjectDelete(0, "lblStatus");
    ObjectDelete(0, "lblSpread");
    ObjectDelete(0, "lblPosition");
    ObjectDelete(0, "lblStopLoss");
    ObjectDelete(0, "lblPrevBar");
+   ObjectDelete(0, "lblMarketInfo");
    
    Print("RREA deinitialized");
 }
@@ -119,6 +122,11 @@ void OnChartEvent(const int id,
          Print("Sell Stop button clicked");
          PlaceSellStopOrder();
       }
+      else if(sparam == "btnMarketOrder")
+      {
+         Print("Market Order button clicked");
+         PlaceMarketOrder();
+      }
    }
 }
 
@@ -149,20 +157,18 @@ void CreateUI()
    ObjectCreate(0, "btnBuyLimit", OBJ_BUTTON, 0, 0, 0);
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_XDISTANCE, x + 5);
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_YDISTANCE, y + 5);
-   ObjectSetInteger(0, "btnBuyLimit", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, "btnBuyLimit", OBJPROP_XSIZE, width/2 - 2);
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_YSIZE, height);
    ObjectSetString(0, "btnBuyLimit", OBJPROP_TEXT, "BUY LIMIT");
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_BGCOLOR, clrGreen);
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_COLOR, clrWhite);
    ObjectSetInteger(0, "btnBuyLimit", OBJPROP_FONTSIZE, 9);
    
-   y += spacing;
-   
    // Create Sell Limit button
    ObjectCreate(0, "btnSellLimit", OBJ_BUTTON, 0, 0, 0);
-   ObjectSetInteger(0, "btnSellLimit", OBJPROP_XDISTANCE, x + 5);
+   ObjectSetInteger(0, "btnSellLimit", OBJPROP_XDISTANCE, x + 5 + width/2 + 2);
    ObjectSetInteger(0, "btnSellLimit", OBJPROP_YDISTANCE, y + 5);
-   ObjectSetInteger(0, "btnSellLimit", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, "btnSellLimit", OBJPROP_XSIZE, width/2 - 2);
    ObjectSetInteger(0, "btnSellLimit", OBJPROP_YSIZE, height);
    ObjectSetString(0, "btnSellLimit", OBJPROP_TEXT, "SELL LIMIT");
    ObjectSetInteger(0, "btnSellLimit", OBJPROP_BGCOLOR, clrRed);
@@ -175,27 +181,39 @@ void CreateUI()
    ObjectCreate(0, "btnBuyStop", OBJ_BUTTON, 0, 0, 0);
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_XDISTANCE, x + 5);
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_YDISTANCE, y + 5);
-   ObjectSetInteger(0, "btnBuyStop", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, "btnBuyStop", OBJPROP_XSIZE, width/2 - 2);
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_YSIZE, height);
    ObjectSetString(0, "btnBuyStop", OBJPROP_TEXT, "BUY STOP");
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_BGCOLOR, clrBlue);
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_COLOR, clrWhite);
    ObjectSetInteger(0, "btnBuyStop", OBJPROP_FONTSIZE, 9);
    
-   y += spacing;
-   
    // Create Sell Stop button
    ObjectCreate(0, "btnSellStop", OBJ_BUTTON, 0, 0, 0);
-   ObjectSetInteger(0, "btnSellStop", OBJPROP_XDISTANCE, x + 5);
+   ObjectSetInteger(0, "btnSellStop", OBJPROP_XDISTANCE, x + 5 + width/2 + 2);
    ObjectSetInteger(0, "btnSellStop", OBJPROP_YDISTANCE, y + 5);
-   ObjectSetInteger(0, "btnSellStop", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, "btnSellStop", OBJPROP_XSIZE, width/2 - 2);
    ObjectSetInteger(0, "btnSellStop", OBJPROP_YSIZE, height);
    ObjectSetString(0, "btnSellStop", OBJPROP_TEXT, "SELL STOP");
    ObjectSetInteger(0, "btnSellStop", OBJPROP_BGCOLOR, clrOrange);
    ObjectSetInteger(0, "btnSellStop", OBJPROP_COLOR, clrWhite);
    ObjectSetInteger(0, "btnSellStop", OBJPROP_FONTSIZE, 9);
    
-   y += 20;
+   y += spacing;
+   
+   // Create Market Order button
+   ObjectCreate(0, "btnMarketOrder", OBJ_BUTTON, 0, 0, 0);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_XDISTANCE, x + 5);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_YDISTANCE, y + 5);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_YSIZE, height);
+   ObjectSetString(0, "btnMarketOrder", OBJPROP_TEXT, "MARKET ORDER");
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_BGCOLOR, clrPurple);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_COLOR, clrWhite);
+   ObjectSetInteger(0, "btnMarketOrder", OBJPROP_FONTSIZE, 9);
+   
+   y += 40;
+   
    
    // Create status label
    ObjectCreate(0, "lblStatus", OBJ_LABEL, 0, 0, 0);
@@ -357,11 +375,11 @@ double CalculatePositionSize(ENUM_ORDER_TYPE orderType, double entryPrice)
    
    // Calculate stop distance in points
    double stopDistancePoints;
-   if(orderType == ORDER_TYPE_BUY_LIMIT || orderType == ORDER_TYPE_BUY_STOP)
+   if(orderType == ORDER_TYPE_BUY || orderType == ORDER_TYPE_BUY_LIMIT || orderType == ORDER_TYPE_BUY_STOP)
    {
       stopDistancePoints = (entryPrice - StopLossPrice) / _Point;
    }
-   else if(orderType == ORDER_TYPE_SELL_LIMIT || orderType == ORDER_TYPE_SELL_STOP)
+   else if(orderType == ORDER_TYPE_SELL || orderType == ORDER_TYPE_SELL_LIMIT || orderType == ORDER_TYPE_SELL_STOP)
    {
       stopDistancePoints = (StopLossPrice - entryPrice) / _Point;
    }
@@ -451,6 +469,21 @@ bool ValidateSpread(double riskDistance)
    }
    
    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Get minimum stop distance for current symbol                     |
+//+------------------------------------------------------------------+
+double GetMinStopDistance()
+{
+   // Get stop level in points
+   int stopLevel = (int)SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL);
+   double minStopDistance = stopLevel * _Point;
+   
+   // Add some buffer to ensure valid orders
+   minStopDistance += 10 * _Point; // Add 10 points buffer
+   
+   return minStopDistance;
 }
 
 //+------------------------------------------------------------------+
@@ -599,8 +632,26 @@ void PlaceBuyStopOrder()
    // Calculate spread
    double spread = SymbolInfoInteger(Symbol(), SYMBOL_SPREAD) * _Point;
    
-   // Calculate entry price (previous high + 1 tick + spread)
-   double entryPrice = previousBarHigh + _Point + spread;
+   // Get current ask price
+   double currentAsk = SymbolInfoDouble(Symbol(), SYMBOL_ASK);
+   
+   // Calculate minimum stop distance
+   double minStopDistance = GetMinStopDistance();
+   
+   // Calculate base entry price (previous high + 1 tick + spread)
+   double baseEntryPrice = previousBarHigh + _Point + spread;
+   
+   // Ensure buy stop is above current ask by at least minStopDistance
+   double requiredPrice = currentAsk + minStopDistance;
+   double entryPrice = MathMax(baseEntryPrice, requiredPrice);
+   
+   // If calculated price is too close or below current price, adjust it
+   if(entryPrice <= currentAsk)
+   {
+      entryPrice = currentAsk + minStopDistance;
+      Print("Adjusted Buy Stop price to meet minimum distance requirement");
+   }
+   
    double slPrice = StopLossPrice;
    
    // Validate SL position
@@ -627,7 +678,8 @@ void PlaceBuyStopOrder()
    slPrice = NormalizeDouble(slPrice, _Digits);
    tpPrice = NormalizeDouble(tpPrice, _Digits);
    
-   Print("RREA - Placing BUY STOP at previous bar high + 1 tick + spread: ", entryPrice, 
+   Print("RREA - Placing BUY STOP at: ", entryPrice, 
+         " (Current Ask: ", currentAsk, ", Min Distance: ", minStopDistance/_Point, " pts)",
          " SL: ", slPrice, 
          " TP: ", tpPrice,
          " Lots: ", lots);
@@ -661,8 +713,26 @@ void PlaceSellStopOrder()
    // Calculate spread
    double spread = SymbolInfoInteger(Symbol(), SYMBOL_SPREAD) * _Point;
    
-   // Calculate entry price (previous low - 1 tick)
-   double entryPrice = previousBarLow - _Point;
+   // Get current bid price
+   double currentBid = SymbolInfoDouble(Symbol(), SYMBOL_BID);
+   
+   // Calculate minimum stop distance
+   double minStopDistance = GetMinStopDistance();
+   
+   // Calculate base entry price (previous low - 1 tick)
+   double baseEntryPrice = previousBarLow - _Point;
+   
+   // Ensure sell stop is below current bid by at least minStopDistance
+   double requiredPrice = currentBid - minStopDistance;
+   double entryPrice = MathMin(baseEntryPrice, requiredPrice);
+   
+   // If calculated price is too close or above current price, adjust it
+   if(entryPrice >= currentBid)
+   {
+      entryPrice = currentBid - minStopDistance;
+      Print("Adjusted Sell Stop price to meet minimum distance requirement");
+   }
+   
    double slPrice = StopLossPrice;
    
    // Validate SL position
@@ -689,7 +759,8 @@ void PlaceSellStopOrder()
    slPrice = NormalizeDouble(slPrice, _Digits);
    tpPrice = NormalizeDouble(tpPrice, _Digits);
    
-   Print("RREA - Placing SELL STOP at previous bar low - 1 tick: ", entryPrice, 
+   Print("RREA - Placing SELL STOP at: ", entryPrice, 
+         " (Current Bid: ", currentBid, ", Min Distance: ", minStopDistance/_Point, " pts)",
          " SL: ", slPrice, 
          " TP: ", tpPrice,
          " Lots: ", lots);
@@ -698,6 +769,117 @@ void PlaceSellStopOrder()
    if(!trade.SellStop(lots, entryPrice, Symbol(), slPrice, tpPrice, ORDER_TIME_GTC, 0, TradeComment))
    {
       Print("Failed to place SELL STOP. Error: ", GetLastError());
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Place Market Order                                               |
+//+------------------------------------------------------------------+
+void PlaceMarketOrder()
+{
+   // Check stop loss is set
+   if(StopLossPrice <= 0)
+   {
+      Print("Error: Stop loss must be set in input parameters");
+      return;
+   }
+   
+   // Check if already have position
+   if(HasOpenPosition())
+   {
+      Print("Cannot place order: Already have open position");
+      return;
+   }
+   
+   // Get current market prices
+   double currentBid = SymbolInfoDouble(Symbol(), SYMBOL_BID);
+   double currentAsk = SymbolInfoDouble(Symbol(), SYMBOL_ASK);
+   double spread = SymbolInfoInteger(Symbol(), SYMBOL_SPREAD) * _Point;
+   
+   // Determine direction based on stop loss position relative to current price
+   if(StopLossPrice < currentBid)
+   {
+      // Buy Market Order - Stop loss below current bid
+      double entryPrice = currentAsk;
+      double slPrice = StopLossPrice;
+      
+      // Validate SL position
+      if(slPrice >= entryPrice)
+      {
+         Print("Error: Stop loss must be below entry for BUY MARKET ORDER");
+         return;
+      }
+      
+      // Calculate TP (entry + (Distance to SL * RiskMultiplier))
+      double distanceToSL = entryPrice - slPrice;
+      double tpPrice = entryPrice + (distanceToSL * RiskMultiplier);
+      
+      // Validate spread
+      if(!ValidateSpread(distanceToSL))
+         return;
+      
+      // Calculate position size
+      double lots = CalculatePositionSize(ORDER_TYPE_BUY, entryPrice);
+      if(lots <= 0) return;
+      
+      // Place the order
+      slPrice = NormalizeDouble(slPrice, _Digits);
+      tpPrice = NormalizeDouble(tpPrice, _Digits);
+      
+      Print("RREA - Placing MARKET BUY at: ", entryPrice, 
+            " SL: ", slPrice, 
+            " TP: ", tpPrice,
+            " Lots: ", lots);
+      
+      if(!trade.Buy(lots, Symbol(), entryPrice, slPrice, tpPrice, TradeComment))
+      {
+         Print("Failed to place MARKET BUY. Error: ", GetLastError());
+      }
+   }
+   else if(StopLossPrice > currentAsk)
+   {
+      // Sell Market Order - Stop loss above current ask
+      double entryPrice = currentBid;
+      double slPrice = StopLossPrice;
+      
+      // Validate SL position
+      if(slPrice <= entryPrice)
+      {
+         Print("Error: Stop loss must be above entry for SELL MARKET ORDER");
+         return;
+      }
+      
+      // Calculate TP (entry - ((Distance to SL * RiskMultiplier) + Spread))
+      double distanceToSL = slPrice - entryPrice;
+      double tpPrice = entryPrice - (distanceToSL * RiskMultiplier) - spread;
+      
+      // Validate spread
+      if(!ValidateSpread(distanceToSL))
+         return;
+      
+      // Calculate position size
+      double lots = CalculatePositionSize(ORDER_TYPE_SELL, entryPrice);
+      if(lots <= 0) return;
+      
+      // Place the order
+      slPrice = NormalizeDouble(slPrice, _Digits);
+      tpPrice = NormalizeDouble(tpPrice, _Digits);
+      
+      Print("RREA - Placing MARKET SELL at: ", entryPrice, 
+            " SL: ", slPrice, 
+            " TP: ", tpPrice,
+            " Lots: ", lots);
+      
+      if(!trade.Sell(lots, Symbol(), entryPrice, slPrice, tpPrice, TradeComment))
+      {
+         Print("Failed to place MARKET SELL. Error: ", GetLastError());
+      }
+   }
+   else
+   {
+      Print("Error: For BUY MARKET, stop loss must be below current bid (", currentBid, 
+            "). For SELL MARKET, stop loss must be above current ask (", currentAsk, ").");
+      Print("Current Stop Loss: ", StopLossPrice);
    }
 }
 
